@@ -14,7 +14,7 @@ public class CameraFollow : MonoBehaviour
 
     private void Start()
     {
-        currentOffset = offsetMin;
+        SetRateOffset(0);
         tfCamera.rotation = Quaternion.Euler(new Vector3(45, 0, 0));
     }
     void Update()

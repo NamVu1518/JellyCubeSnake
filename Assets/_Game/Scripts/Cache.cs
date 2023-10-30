@@ -5,7 +5,7 @@ using UnityEngine;
 public static class Cache
 {
     public static Dictionary<Collider, Cube> cacheCube = new Dictionary<Collider, Cube>();
-    public static Dictionary<Collider, CubeMove> cacheCubeMove = new Dictionary<Collider, CubeMove>();
+    public static Dictionary<Cube, CubeMove> cacheCubeMove = new Dictionary<Cube, CubeMove>();
 
 
     public static Cube GetCubeFromCollider(Collider collider)
@@ -20,15 +20,15 @@ public static class Cache
         return cacheCube[collider];
     }
 
-    public static CubeMove GetCubeMoveFromCollider(Collider collider)
+    public static CubeMove GetCubeMoveFromCube(Cube cubeCanMove)
     {
-        if (!cacheCubeMove.ContainsKey(collider))
+        if (!cacheCubeMove.ContainsKey(cubeCanMove))
         {
-            CubeMove cubeMove = collider.gameObject.GetComponent<CubeMove>();
+            CubeMove cubeMove = cubeCanMove.gameObject.GetComponent<CubeMove>();
 
-            cacheCubeMove[collider] = cubeMove;
+            cacheCubeMove[cubeCanMove] = cubeMove;
         }
 
-        return cacheCubeMove[collider];
+        return cacheCubeMove[cubeCanMove];
     }
 }

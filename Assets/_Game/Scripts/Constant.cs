@@ -10,6 +10,6 @@ public class Constant
     public const float limit = 0.5f;
     public const float limitAdd = 0.1f;
     public const float scaleAdd = 0.2f;
-    public const float speed = 3f;
+    public const float speed = 6f;
     public const int levelCount = 10;
 }

@@ -5,7 +5,8 @@ using UnityEngine;
 public enum PoolType
 {
     none = 0,
-    cube = 1
+    cube = 1,
+    cubeCanMove = 2
 }
 public static class SimplePool
 {

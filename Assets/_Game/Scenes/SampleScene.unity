@@ -501,8 +501,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tfPlayer: {fileID: 8138472495834585095}
   tfCamera: {fileID: 963194228}
-  offsetMin: {x: 0, y: 30, z: -30}
-  offsetMax: {x: 0, y: 100, z: -100}
+  offsetMin: {x: 0, y: 20, z: -20}
+  offsetMax: {x: 0, y: 50, z: -50}
 --- !u!1 &1238395821
 GameObject:
   m_ObjectHideFlags: 0
@@ -515,6 +515,7 @@ GameObject:
   - component: {fileID: 1238395822}
   - component: {fileID: 1238395824}
   - component: {fileID: 1238395825}
+  - component: {fileID: 1238395826}
   m_Layer: 0
   m_Name: System
   m_TagString: Untagged
@@ -539,6 +540,9 @@ MonoBehaviour:
     parent: {fileID: 0}
     amout: 0
   - unit: {fileID: 8914627665512695191, guid: 76961f18c2b16624ab5fa6e1d551046d, type: 3}
+    parent: {fileID: 85298655}
+    amout: 100
+  - unit: {fileID: 8914627665512695191, guid: 5454f87934c63924e94208d9142219f0, type: 3}
     parent: {fileID: 85298655}
     amout: 100
 --- !u!4 &1238395823
@@ -581,6 +585,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scriptable: {fileID: 11400000, guid: d8521d3154864894f9eb3fa52c6e0ad3, type: 2}
+--- !u!114 &1238395826
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1238395821}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 566a299c6ecd09142bec95c8122e7d04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 1249376306}
+  cam: {fileID: 963194229}
 --- !u!54 &1249376301
 Rigidbody:
   m_ObjectHideFlags: 0
