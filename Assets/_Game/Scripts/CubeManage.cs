@@ -5,151 +5,168 @@ using System.Collections.Generic;
 using System.Runtime.ConstrainedExecution;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class CubeManage : Singleton<CubeManage>
 {
     [SerializeField] private Player player;
     [SerializeField] private CameraFollow cam;
 
-    public void AddCube(Charater charater, Cube cube, int level)
+    // Them gach vao ran
+    public void AddCubeMove(Charater charater, CubeMove cubeCanMove, int level)
     {
         if (charater.IsGrowing == false)
         {
             Node<Cube> nodeLoop = charater.LinkedListCube.head;
-            Node<Cube> newNode = new Node<Cube>(cube);
-
-            cube.OnInIt(level, charater);
 
             while (nodeLoop.next != null && nodeLoop.next.data.Level >= level)
             {
                 nodeLoop = nodeLoop.next;
             }
 
-            newNode.next = nodeLoop.next;
-            newNode.pre = nodeLoop;
-            nodeLoop.next = newNode;
+            //Set node
+            Node<Cube> newNode = charater.LinkedListCube.AddAfter(nodeLoop, cubeCanMove);
+            float tempLimit = Constant.CUBE_LIMIT + level * Constant.CUBE_VALUE_ADD_LIMIT;
+            Vector3 posInit = newNode.pre.data.tf.position - (newNode.pre.data.Limit + tempLimit) * newNode.pre.data.tf.forward;
 
             if (newNode.next != null)
             {
-                newNode.next.pre = newNode;
+                CubeMove cubeMoveNext = Cache.GetCubeMoveFromCube(newNode.next.data);
+                cubeMoveNext.CubeFollow = newNode.data;
             }
 
-            CubeMove cubeMoveNewNode = Cache.GetCubeMoveFromCube(newNode.data);
-            cubeMoveNewNode.OnInit(nodeLoop.data, charater, level, nodeLoop.data.tf.position - (nodeLoop.data.Limit + newNode.data.Limit) * nodeLoop.data.tf.forward);
+            cubeCanMove.OnInit(newNode.pre.data, charater, level, posInit);
 
-            if (newNode.next != null)
-            {
-                CubeMove cubeMoveNextNode = Cache.GetCubeMoveFromCube(newNode.next.data);
-                cubeMoveNextNode.OnInit(newNode.data, charater, newNode.next.data.Level, newNode.next.data.tf.position);
-            }
+            CheckToMegreCube(charater, newNode.pre, newNode);
 
-            MergeCube(charater, nodeLoop, newNode);
-
-            SpawnCube();
+            SpawnCubeOnMap();
         }
         else
         {
-            cube.OnInIt(level, charater);
-            cube.gameObject.SetActive(false);
-            charater.QueueCube.Enqueue(cube);
+            cubeCanMove.gameObject.SetActive(false);
+            charater.QueueCube.Enqueue(cubeCanMove);
         }
     }
 
-    public void RemoveCube(Charater charater, Cube cube)
+    public void CheckToMegreCube(Charater charater, Node<Cube> pre, Node<Cube> cur)
     {
-        Node<Cube> nodeLoop = charater.LinkedListCube.head;
-        
-        while (nodeLoop.next != null && nodeLoop.data != cube)
+        if (pre.data.Level == cur.data.Level)
         {
-            nodeLoop = nodeLoop.next;
+            charater.IsGrowing = true;
+            MoveToFront(pre);
+            StartCoroutine(MergeCube(charater, pre, cur));
         }
-
-        Node<Cube> preNode;
-        preNode = nodeLoop.pre;
-
-        charater.LinkedListCube.RemoveNode(preNode.next.data);
-
-        if (preNode.next != null)
+        else
         {
-            CubeMove cubeMove = Cache.GetCubeMoveFromCube(preNode.next.data);
-            cubeMove.CubeFollow = preNode.data;
+            charater.IsGrowing = false;
 
-            MoveToFront(preNode);
+            if (charater.QueueCube.Count != 0)
+            {
+                CubeMove cubeCanMove = charater.QueueCube.Dequeue() as CubeMove;
+                cubeCanMove.gameObject.SetActive(true);
+                AddCubeMove(charater, cubeCanMove, cubeCanMove.Level);
+            }
         }
-            
-        SimplePool.Despawn(cube);
     }
 
-    private void MoveToFront(Node<Cube> preNodePara)
+    private IEnumerator MergeCube(Charater charater, Node<Cube> pre, Node<Cube> cur)
     {
-        Node<Cube> preNode = preNodePara;
-        Node<Cube> curNode = preNode.next;
-        Vector3 posDoMove = preNode.data.tf.position;
-        posDoMove.y = curNode.data.Limit;
+        yield return new WaitForSeconds(Constant.TIME_MERGE);
 
-        while(curNode != null)
+        pre.data.OnInit(++pre.data.Level, pre.data.tf.position);
+        RemoveCubeForLevelUp(charater, cur);
+
+        if (pre.pre != null)
         {
-            curNode.data.tf.DOMove(posDoMove, 0.25f);
+            CheckToMegreCube(charater, pre.pre, pre);
+        }
+        else
+        {
+            charater.IsGrowing = false;
 
-            Vector3 posPreNode = preNode.data.tf.position;
-            Vector3 posCurNode = curNode.data.tf.position;
-            Vector3 dir = posPreNode - posCurNode;
-            dir.y = 0;
+            if (charater.QueueCube.Count != 0)
+            {
+                CubeMove cubeCamMove = charater.QueueCube.Dequeue() as CubeMove;
+                cubeCamMove.gameObject.SetActive(true);
+                AddCubeMove(charater, cubeCamMove, cubeCamMove.Level);
+            }
 
-            posDoMove -= dir.normalized * (preNode.data.Limit + curNode.data.Limit);
+            charater.IsGrowing = false;
+        }
+    }
 
-            preNode = curNode;
+    public void RemoveCubeForLevelUp(Charater charater, Node<Cube> nodeToRemove) 
+    {
+        if (nodeToRemove != charater.LinkedListCube.Head)
+        {
+            Node<Cube> nodeLoop = charater.LinkedListCube.head;
+
+            while (nodeLoop.next != null && nodeLoop != nodeToRemove)
+            {
+                nodeLoop = nodeLoop.next;
+            }
+
+            if (nodeLoop.next != null)
+            {
+                CubeMove cubeMove = Cache.GetCubeMoveFromCube(nodeLoop.next.data);
+                cubeMove.CubeFollow = nodeLoop.pre.data;
+            }
+
+            Node<Cube> removeNode = charater.LinkedListCube.RemoveNode(nodeLoop);
+            SimplePool.Despawn(removeNode.data);
+        }
+    }
+
+    private void MoveToFront(Node<Cube> targetNode)
+    { 
+        Node<Cube> curNode = targetNode.next;
+
+        StartCoroutine(StopMoveToFront(curNode));
+
+        while (curNode != null)
+        {
+            CubeMove cubeMove = Cache.GetCubeMoveFromCube(curNode.data);
+            cubeMove.IsMerging = true;
             curNode = curNode.next;
         }
     }
 
-    public void MergeCube(Charater charater, Node<Cube> pre, Node<Cube> cur)
+    private IEnumerator StopMoveToFront(Node<Cube> stopNode)
     {
-        if (pre.data.Level != cur.data.Level)
-        {
-            charater.IsGrowing = false;
+        yield return new WaitForSeconds(Constant.TIME_MERGE);
 
-            if (charater.QueueCube.Count != 0)
-            {
-                Cube cube = charater.QueueCube.Dequeue();
-                cube.gameObject.SetActive(true);
-                AddCube(charater, cube, cube.Level);
-            }
-        }
-        else
+        while (stopNode != null)
         {
-            charater.IsGrowing = true;
-            StartCoroutine(LevelUpCube(charater, pre, cur));
+            CubeMove cubeMove = Cache.GetCubeMoveFromCube(stopNode.data);
+            cubeMove.IsMerging = false;
+            stopNode = stopNode.next;
         }
     }
 
-    private IEnumerator LevelUpCube(Charater charater, Node<Cube> pre, Node<Cube> cur)
+    public void ToCubeOnMapWhenCharaterDead(Charater charater)
     {
-        yield return new WaitForSeconds(0.4f);
+        DoublyLinkedList<Cube> doublyLinkedList = charater.LinkedListCube;
+        Node<Cube> nodeLoop = doublyLinkedList.Head;
+        Queue<Cube> queueCubeCharater = charater.QueueCube;
 
-        pre.data.OnInit(++pre.data.Level, pre.data.tf.position);
-        RemoveCube(charater, cur.data);
-
-        CheckToUpCamera(charater.LinkedListCube);
-        
-        if (pre.pre != null)
+        while (nodeLoop.next != null)
         {
-            MergeCube(charater, pre.pre, pre);
+            nodeLoop = nodeLoop.next;
+            ConvertCubeCanMoveToCubeOnMap((CubeMove)nodeLoop.data);
         }
-        else
+
+        while (queueCubeCharater.Count > 0)
         {
-            charater.IsGrowing = false;
-
-            if (charater.QueueCube.Count != 0)
-            {
-                Cube cube = charater.QueueCube.Dequeue();
-                cube.gameObject.SetActive(true);
-                AddCube(charater, cube, cube.Level);
-            }
-
-            charater.IsGrowing = false;
-        }
+            ConvertCubeCanMoveToCubeOnMap(queueCubeCharater.Dequeue() as CubeMove);
+        } 
     }
+
+    private void ConvertCubeCanMoveToCubeOnMap(CubeMove cubeMove)
+    {
+        CubeOnMap cubeOnMap = SimplePool.Spawn(PoolType.cubeOnMap) as CubeOnMap;
+        cubeOnMap.OnInit(cubeMove.Level, cubeMove.tf.position, null);
+        SimplePool.Despawn(cubeMove);
+    } 
 
     private void CheckToUpCamera(DoublyLinkedList<Cube> doublyLinkedList)
     {
@@ -186,7 +203,42 @@ public class CubeManage : Singleton<CubeManage>
         }
     }
 
-    public void SpawnCube()
+    public void SpawnCubeOnMap()
+    {
+        CubeOnMap cube = SimplePool.Spawn(PoolType.cubeOnMap) as CubeOnMap;
+        cube.OnInit(RamdomLevel(), GoodPointForInit(), null);
+    }
+
+    public void SpawnEnemy()
+    {
+        Enemy enemy = SimplePool.Spawn(PoolType.cubeEnemy) as Enemy;
+        enemy.OnInit();
+    }
+
+    public Vector3 RandomAPointInMap()
+    {
+        float rdX = Random.Range(-Constant.LIMIT_MAP_X, Constant.LIMIT_MAP_X);
+        float rdZ = Random.Range(-Constant.LIMIT_MAP_Z, Constant.LIMIT_MAP_Z);
+
+        return new Vector3(rdX, 0, rdZ);
+    }
+
+    public Vector3 GoodPointForInit()
+    {
+        int lenght = 1;
+        Vector3 rdPoint = Vector3.zero;
+
+        while (lenght > 0)
+        {
+            rdPoint = RandomAPointInMap();
+            Collider[] colliders = Physics.OverlapSphere(rdPoint, 5f, LayerMask.GetMask("CubeOnMap"));
+            lenght = colliders.Length;
+        }
+
+        return rdPoint;
+    }
+
+    public int RamdomLevel()
     {
         int rd = Random.Range(0, 100);
         int level = 0;
@@ -232,7 +284,33 @@ public class CubeManage : Singleton<CubeManage>
             level = 9;
         }
 
-        Cube cube = SimplePool.Spawn(PoolType.cube) as Cube;
-        cube.OnInIt(level, null);
+        return level;
+    }
+
+    public Cube FindNearestCubeCanEat(Cube cubeEnemy)
+    {
+        Cube des;
+
+        List<GameUnit> listActiveCubeOnMap = SimplePool.keyPool[PoolType.cubeOnMap].active;
+
+        Vector3 cubePosInit = listActiveCubeOnMap[0].tf.position;
+        cubePosInit.y = cubeEnemy.tf.position.y;
+        float dis = Vector3.Distance(cubePosInit, cubeEnemy.tf.position);
+        des = listActiveCubeOnMap[0] as Cube;
+
+        for (int i = 1; i < listActiveCubeOnMap.Count; i++)
+        {
+            Cube cube = (Cube)listActiveCubeOnMap[i];
+            Vector3 cubePos = cube.tf.position;
+            cubePos.y = cubeEnemy.tf.position.y;
+
+            if (cubeEnemy.Level >= cube.Level && Vector3.Distance(cubeEnemy.tf.position, cubePos) < dis)
+            {
+                des = cube;
+                dis = Vector3.Distance(cubeEnemy.tf.position, cubePos);
+            }
+        }
+
+        return des;
     }
 }

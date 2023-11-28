@@ -128,7 +128,7 @@ RectTransform:
   m_GameObject: {fileID: 2367916780709526117}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1.0000002, z: 1.0000002}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 775189380722612531}
@@ -136,7 +136,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -0.00000011920929}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5013655724610927636
@@ -248,10 +248,11 @@ GameObject:
   - component: {fileID: 6763514887602244847}
   - component: {fileID: 6474457317255352557}
   - component: {fileID: 5165365854748902030}
-  - component: {fileID: 8914627665512695191}
-  m_Layer: 0
-  m_Name: Cube
-  m_TagString: Untagged
+  - component: {fileID: 7370617003828610537}
+  - component: {fileID: 2436912562438805043}
+  m_Layer: 6
+  m_Name: CubeOnMap
+  m_TagString: CubeOnMap
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -335,7 +336,23 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &8914627665512695191
+--- !u!208 &7370617003828610537
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4730079050708686799}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 1, y: 0.5, z: 1}
+  m_MoveThreshold: 0
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 0, z: 0}
+  m_TimeToStationary: 0
+--- !u!114 &2436912562438805043
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -344,10 +361,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 4730079050708686799}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b47f5f86a852194b9a2738c004e9d2f, type: 3}
+  m_Script: {fileID: 11500000, guid: ae3b2e47a160a7b43bcd79af170a5cb6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   poolType: 1
   tf: {fileID: 8138472496504749082}
+  cube: {fileID: 2436912562438805043}
   textValue: {fileID: 3511506944740963333}
   cubeRenderer: {fileID: 6474457317255352557}

@@ -5,8 +5,9 @@ using UnityEngine;
 public enum PoolType
 {
     none = 0,
-    cube = 1,
-    cubeCanMove = 2
+    cubeOnMap = 1,
+    cubeCanMove = 2,
+    cubeEnemy = 3
 }
 public static class SimplePool
 {
@@ -82,7 +83,6 @@ public static class SimplePool
     public class Pool
     {
         public List<GameUnit> gameUnits = new List<GameUnit>();
-
         public List<GameUnit> active = new List<GameUnit>();
 
         GameUnit prefab;
@@ -90,6 +90,7 @@ public static class SimplePool
         public void PreLoad(GameUnit gameUnit, Transform parent, int amout)
         {
             prefab = gameUnit;
+            this.parent = parent;
 
             for (int i = 0; i < amout; i++)
             {

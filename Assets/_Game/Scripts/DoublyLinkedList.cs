@@ -34,7 +34,7 @@ public class DoublyLinkedList<T>
         return count;
     }
 
-    public void AddHead(T data)
+    public Node<T> AddHead(T data)
     {
         if (head == null)
         {
@@ -47,6 +47,8 @@ public class DoublyLinkedList<T>
             head.pre = node;
             head = node;
         }
+
+        return head;
     }
 
     public void AddTail(T data)
@@ -96,6 +98,50 @@ public class DoublyLinkedList<T>
         }
     }
 
+    public Node<T> AddAfter(Node<T> node, T data) 
+    {
+        Node<T> nodeLoop = head;
+ 
+        while(nodeLoop.next != null && nodeLoop != node)
+        {
+            nodeLoop = nodeLoop.next;
+        }
+
+        Node<T> newNode = new Node<T>(data);
+        newNode.next = node.next;
+        newNode.pre = node; 
+        node.next = newNode;
+
+        if (newNode.next != null)
+        {
+            newNode.next.pre = newNode;
+        }
+
+        return newNode;
+    }
+
+    public Node<T> AddBefore(Node<T> node, T data)
+    {
+        Node<T> nodeLoop = head;
+
+        while (nodeLoop.next != null && nodeLoop != node)
+        {
+            nodeLoop = nodeLoop.next;
+        }
+
+        Node<T> newNode = new Node<T>(data);
+        newNode.next = node;
+        newNode.pre = node.pre;
+        node.pre = newNode;
+
+        if (node.pre != null)
+        {
+            node.pre.next = newNode;
+        }
+
+        return newNode;
+    }
+
     public T GetAt(int index)
     {
         if (index > Count() - 1 || index < 0)
@@ -139,16 +185,24 @@ public class DoublyLinkedList<T>
         head = null;
     }
 
-    public void RemoveTail()
+    public Node<T> RemoveTail()
     {
         Node<T> node = GetNodeAt(Count() - 1);
         node.pre.next = null;
+        node.pre = null;
+
+        return node;
     } 
 
-    public void RemoveHead()
+    public Node<T> RemoveHead()
     {
-        head.next.pre = null;
+        Node<T> nodeHead = head;
+
         head = head.next;
+        head.pre = null;
+        nodeHead.next = null;
+
+        return nodeHead;
     }
 
     public T RemoveGet(int index)
@@ -201,50 +255,54 @@ public class DoublyLinkedList<T>
         }
     }
 
-    public void RemoveNode(Node<T> node)
+    public Node<T> RemoveNode(Node<T> node)
     {
-        Node<T> newNode = head;
+        Node<T> nodeLoop = head;
 
-        if (newNode == node)
+        while (nodeLoop.next != null && node != nodeLoop)
         {
-            RemoveHead();
-            return;
+            nodeLoop = nodeLoop.next;
         }
 
-        while (newNode.next != null && node != newNode)
+        if (nodeLoop.pre != null)
         {
-            newNode = newNode.next;
+            nodeLoop.pre.next = nodeLoop.next;
         }
 
-        newNode.pre.next = newNode.next;
-
-        if (newNode.next != null)
+        if (nodeLoop.next != null)
         {
-            newNode.next.pre = newNode.pre;
+            nodeLoop.next.pre = nodeLoop.pre;
         }
+
+        nodeLoop.next = null;
+        nodeLoop.pre = null;
+
+        return nodeLoop;
     }
 
-    public void RemoveNode(T data)
+    public Node<T> RemoveNode(T data)
     {
-        Node<T> newNode = head;
+        Node<T> nodeLoop = head;
 
-        if (ReferenceEquals(data, newNode.data))
+        while (nodeLoop.next != null && !ReferenceEquals(data, nodeLoop.data))
         {
-            RemoveHead();
-            return;
+            nodeLoop = nodeLoop.next;
         }
 
-        while (newNode.next != null && !ReferenceEquals(data, newNode.data))
+        if (nodeLoop.pre != null)
         {
-            newNode = newNode.next;
+            nodeLoop.pre.next = nodeLoop.next;
         }
 
-        newNode.pre.next = newNode.next;
-
-        if (newNode.next != null)
+        if (nodeLoop.next != null)
         {
-            newNode.next.pre = newNode.pre;
+            nodeLoop.next.pre = nodeLoop.pre;
         }
+
+        nodeLoop.next = null;
+        nodeLoop.pre = null;
+
+        return nodeLoop;
     }
 
     public T[] ToArray()
